@@ -1,6 +1,6 @@
 # Composite Specification API
 
-This project provides a composite [Specification](../main/src/main/java/com/github/bartoszpop/jpa/specification/CompositeSpecification.java)
+This project provides a composite [Specification](../main/src/main/java/io/github/bartoszpop/jpa/specification/CompositeSpecification.java)
 in the sense of ["Specifications"]("https://www.martinfowler.com/apsupp/spec.pdf") by Eric Evans and Martin Fowler.
 It is parametrized with the type of a target the [Predicate](https://javaee.github.io/javaee-spec/javadocs/javax/persistence/criteria/Predicate.html) evaluates on.
 Instances of this class are composable in opposite to the [Root](https://javaee.github.io/javaee-spec/javadocs/javax/persistence/criteria/Root.html) limited
@@ -85,7 +85,7 @@ This technique allows to fetch the lazy associations on a per-query basis.
 ```java
 var department = departmentRepository.findOne(name("Sales").and(fetchEmployees()));
 ```
-More examples can be found [here](../main/src/example/java/com/github/bartoszpop/jpa/specification/example/DepartmentApplication.java). Run the demo application with
+More examples can be found [here](../main/src/example/java/io/github/bartoszpop/jpa/specification/example/DepartmentApplication.java). Run the demo application with
 ```shell
 mvn org.springframework.boot:spring-boot-maven-plugin:run -P example
 ```
