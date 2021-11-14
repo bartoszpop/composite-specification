@@ -5,25 +5,23 @@ import org.junit.jupiter.api.Test;
 import javax.persistence.criteria.Expression;
 import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Predicate;
-import java.util.List;
+import java.util.Objects;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.hamcrest.Matchers.sameInstance;
+import static org.hamcrest.Matchers.equalTo;
 
 class CompositeSpecificationTest {
 
     @Test
     void toPredicate_delegatesToPredicateBuilder() {
         // given
-        var targetRoot = new NoOpRoot<>();
-        var targetQuery = new NoOpCriteriaQuery<>();
-        var targetCriteriaBuilder = new NoOpCriteriaBuilder();
         var builderPredicate = new NoOpPredicate();
+        var specificationRoot = new NoOpRoot<>();
+        var specificationQuery = new NoOpCriteriaQuery<>();
+        var specificationCriteriaBuilder = new NoOpCriteriaBuilder();
         var specification = CompositeSpecification.<Object, Path<Object>, TypeSafePredicateBuilder<Path<Object>>>of(
                 (root, query, criteriaBuilder) -> {
-                    if (root == targetRoot && query == targetQuery && criteriaBuilder == targetCriteriaBuilder) {
+                    if (Objects.equals(root, specificationRoot) && Objects.equals(query, specificationQuery) && Objects.equals(criteriaBuilder, specificationCriteriaBuilder)) {
                         return builderPredicate;
                     } else {
                         return null;
@@ -32,10 +30,23 @@ class CompositeSpecificationTest {
         );
 
         // when
-        var specificationPredicate = specification.toPredicate(targetRoot, targetQuery, targetCriteriaBuilder);
+        var specificationPredicate = specification.toPredicate(specificationRoot, specificationQuery, specificationCriteriaBuilder);
 
         // then
-        assertThat(specificationPredicate, sameInstance(builderPredicate));
+        assertThat(specificationPredicate, equalTo(builderPredicate));
+    }
+
+    @Test
+    void asBuilder_delegatesToPredicateBuilder() {
+        // given
+        var delegateBuilderPredicate = new NoOpPredicate();
+        var specification = CompositeSpecification.of(((TypeSafePredicateBuilder<Path<Object>>) (root, query, criteriaBuilder) -> delegateBuilderPredicate));
+
+        // when
+        var builderPredicate = specification.asBuilder().toPredicate(new NoOpRoot<>(), new NoOpCriteriaQuery<>(), new NoOpCriteriaBuilder());
+
+        // then
+        assertThat(builderPredicate, equalTo(delegateBuilderPredicate));
     }
 
     @Test
@@ -59,11 +70,10 @@ class CompositeSpecificationTest {
         );
 
         // when
-        var negatedSpecification = CompositeSpecification.not(specification);
-        var negatedSpecificationPredicate = negatedSpecification.toPredicate(new NoOpRoot<>(), new NoOpCriteriaQuery<>(), negatingCriteriaBuilder);
+        var negatedSpecificationPredicate = CompositeSpecification.not(specification).toPredicate(new NoOpRoot<>(), new NoOpCriteriaQuery<>(), negatingCriteriaBuilder);
 
         // then
-        assertThat(negatedSpecificationPredicate, sameInstance(negatedPredicate));
+        assertThat(negatedSpecificationPredicate, equalTo(negatedPredicate));
     }
 
     @Test
@@ -77,11 +87,12 @@ class CompositeSpecificationTest {
         var rightSpecification = CompositeSpecification.<Object, Path<Object>, TypeSafePredicateBuilder<Path<Object>>>of(
                 (root, query, criteriaBuilder) -> rightSpecificationPredicate
         );
+        var combinedPredicate = new NoOpPredicate();
         var conjunctiveCriteriaBuilder = new AbstractCriteriaBuilder() {
             @Override
             public Predicate and(Expression<Boolean> left, Expression<Boolean> right) {
-                if (left instanceof Predicate && right instanceof Predicate) {
-                    return new CompositePredicate(List.of((Predicate) left, (Predicate) right));
+                if (Objects.equals(left, leftSpecificationPredicate) && Objects.equals(right, rightSpecificationPredicate)) {
+                    return combinedPredicate;
                 } else {
                     return null;
                 }
@@ -89,12 +100,10 @@ class CompositeSpecificationTest {
         };
 
         // when
-        var combinedSpecification = leftSpecification.and(rightSpecification);
-        var combinedPredicate = combinedSpecification.toPredicate(new NoOpRoot<>(), new NoOpCriteriaQuery<>(), conjunctiveCriteriaBuilder);
+        var combinedSpecificationPredicate = leftSpecification.and(rightSpecification).toPredicate(new NoOpRoot<>(), new NoOpCriteriaQuery<>(), conjunctiveCriteriaBuilder);
 
         // then
-        assertThat(combinedPredicate, instanceOf(CompositePredicate.class));
-        assertThat(((CompositePredicate) combinedPredicate).getDelegates(), containsInAnyOrder(sameInstance(leftSpecificationPredicate), sameInstance(rightSpecificationPredicate)));
+        assertThat(combinedSpecificationPredicate, equalTo(combinedPredicate));
     }
 
     @Test
@@ -108,11 +117,12 @@ class CompositeSpecificationTest {
         var rightSpecification = CompositeSpecification.<Object, Path<Object>, TypeSafePredicateBuilder<Path<Object>>>of(
                 (root, query, criteriaBuilder) -> rightSpecificationPredicate
         );
+        var combinedPredicate = new NoOpPredicate();
         var disjunctiveCriteriaBuilder = new AbstractCriteriaBuilder() {
             @Override
             public Predicate or(Expression<Boolean> left, Expression<Boolean> right) {
-                if (left instanceof Predicate && right instanceof Predicate) {
-                    return new CompositePredicate(List.of((Predicate) left, (Predicate) right));
+                if (Objects.equals(left, leftSpecificationPredicate) && Objects.equals(right, rightSpecificationPredicate)) {
+                    return combinedPredicate;
                 } else {
                     return null;
                 }
@@ -120,11 +130,9 @@ class CompositeSpecificationTest {
         };
 
         // when
-        var combinedSpecification = leftSpecification.or(rightSpecification);
-        var combinedPredicate = combinedSpecification.toPredicate(new NoOpRoot<>(), new NoOpCriteriaQuery<>(), disjunctiveCriteriaBuilder);
+        var combinedSpecificationPredicate = leftSpecification.or(rightSpecification).toPredicate(new NoOpRoot<>(), new NoOpCriteriaQuery<>(), disjunctiveCriteriaBuilder);
 
         // then
-        assertThat(combinedPredicate, instanceOf(CompositePredicate.class));
-        assertThat(((CompositePredicate) combinedPredicate).getDelegates(), containsInAnyOrder(sameInstance(leftSpecificationPredicate), sameInstance(rightSpecificationPredicate)));
+        assertThat(combinedSpecificationPredicate, equalTo(combinedPredicate));
     }
 }
