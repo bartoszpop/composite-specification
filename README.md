@@ -103,6 +103,15 @@ More examples can be found [here](../main/src/example/java/io/github/bartoszpop/
 ```shell
 mvn org.springframework.boot:spring-boot-maven-plugin:run -P example
 ```
+## Maven
+To use this library, add the following dependency to your pom.xml:
+```xml
+<dependency>
+    <groupId>io.github.bartoszpop</groupId>
+    <artifactId>composite-specification</artifactId>
+    <version>1.0.0</version>
+</dependency>
+```
 
 ## License
 
