@@ -2,7 +2,6 @@ package com.github.bartoszpop.jpa.specification.example;
 
 import com.github.bartoszpop.jpa.specification.CompositeSpecification;
 import com.github.bartoszpop.jpa.specification.ExpressionSpecifications;
-import com.github.bartoszpop.jpa.specification.TypeSafePredicateBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -202,12 +201,12 @@ public class DepartmentApplication {
         This flaw has been fixed in the Java 17 compatible variant of this library with use of a sealed interface.
          */
         departmentsFound = departmentRepository.findAll(joinEmployees(
-                ((CompositeSpecification<Employee, Path<Employee>>) (CompositeSpecification<Employee, ? extends Expression<Employee>>) in(List.of(rachel)))
-                .or(firstName(phoebe.getFirstName())))); // Java 11
+                ((CompositeSpecification<Employee, Path<Employee>>) (CompositeSpecification<Employee, ? extends Expression<Employee>>) in(List.of(rachel))) // Java 11
+                        .or(firstName(phoebe.getFirstName()))));
         assertThat(departmentsFound, containsInAnyOrder(department(salesDepartment), department(financeDepartment)));
 
         departmentsFound = departmentRepository.findAll(joinEmployees(
-                ExpressionSpecifications.<Employee, Path<Employee>, TypeSafePredicateBuilder<Path<Employee>>> in(List.of(rachel))
+                ExpressionSpecifications.<Employee, Path<Employee>> in(List.of(rachel))
                         .or(firstName(phoebe.getFirstName())))); // Java 17
         assertThat(departmentsFound, containsInAnyOrder(department(salesDepartment), department(financeDepartment)));
     }

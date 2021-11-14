@@ -51,8 +51,7 @@ public class Department {
     @Override
     public final boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof Department)) return false;
-        Department that = (Department) o;
+        if (!(o instanceof Department that)) return false;
         return this.id != null && Objects.equals(this.id, that.id);
     }
 

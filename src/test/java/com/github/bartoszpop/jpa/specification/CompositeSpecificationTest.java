@@ -39,19 +39,6 @@ class CompositeSpecificationTest {
     }
 
     @Test
-    void asBuilder_returnsDelegatePredicateBuilder() {
-        // given
-        var delegatePredicateBuilder = ((TypeSafePredicateBuilder<Path<Object>>) (root, query, criteriaBuilder) -> new NoOpPredicate());
-        var specification = CompositeSpecification.of(delegatePredicateBuilder);
-
-        // when
-        var specificationPredicateBuilder = specification.asBuilder();
-
-        // then
-        assertThat(specificationPredicateBuilder, sameInstance(delegatePredicateBuilder));
-    }
-
-    @Test
     void not_delegatesToCriteriaBuilder() {
         // given
         var negatedPredicate = new NoOpPredicate();

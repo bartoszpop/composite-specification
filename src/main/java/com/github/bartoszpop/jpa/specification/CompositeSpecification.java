@@ -97,7 +97,7 @@ import javax.persistence.criteria.Root;
  */
 public final class CompositeSpecification<T, S> implements Specification<T> {
 
-    private final PredicateBuilder<S> predicateBuilder;
+    private final PredicateBuilder<? super S> predicateBuilder;
 
     /**
      * This constructor must be private because when parameterized with {@code <U extends PredicateBuilder<S> & TypeSafe<? super Root<T>>>},
@@ -109,7 +109,7 @@ public final class CompositeSpecification<T, S> implements Specification<T> {
      * <p>
      * If {@link TypeSafe} is sealed and permits {@link TypeSafePredicateBuilder} only, it throws {@link IncompatibleClassChangeError}.
      */
-    private CompositeSpecification(PredicateBuilder<S> predicateBuilder) {
+    private CompositeSpecification(PredicateBuilder<? super S> predicateBuilder) {
         this.predicateBuilder = predicateBuilder;
     }
 
@@ -117,7 +117,7 @@ public final class CompositeSpecification<T, S> implements Specification<T> {
     public Predicate toPredicate(Root<T> root, CriteriaQuery<?> query, CriteriaBuilder criteriaBuilder) {
         // Cast allowed because only instances of TypeSafePredicateBuilder<S>, where S is a supertype of Root<T> may be passed to TypeSafeSpecification#of
         //noinspection unchecked
-        return ((PredicateBuilder<? super Root<T>>) (PredicateBuilder<?>) predicateBuilder).toPredicate(root, query, criteriaBuilder);
+        return ((PredicateBuilder<? super Root<T>>) predicateBuilder).toPredicate(root, query, criteriaBuilder);
     }
 
     /**
@@ -125,12 +125,12 @@ public final class CompositeSpecification<T, S> implements Specification<T> {
      * This is because {@link TypeSafePredicateBuilder} is the only interface derived from {@link TypeSafe}
      * and it implements {@link PredicateBuilder} and {@link TypeSafe} with the same type argument {@code T}.
      */
-    public static <T, S, U extends PredicateBuilder<S> & TypeSafe<? super Root<T>>> CompositeSpecification<T, S> of(U predicateBuilder) {
+    public static <T, S, U extends PredicateBuilder<? super S> & TypeSafe<? super Root<T>>> CompositeSpecification<T, S> of(U predicateBuilder) {
         return new CompositeSpecification<>(predicateBuilder);
     }
 
     public PredicateBuilder<S> asBuilder() {
-        return predicateBuilder;
+        return predicateBuilder::toPredicate;
     }
 
     public static <T, S> CompositeSpecification<T, S> noOp() {
@@ -138,7 +138,7 @@ public final class CompositeSpecification<T, S> implements Specification<T> {
     }
 
     public static <T, S> CompositeSpecification<T, S> not(CompositeSpecification<T, S> specification) {
-        return new CompositeSpecification<>((root, query, criteriaBuilder) ->
+        return new CompositeSpecification<>((TypeSafePredicateBuilder<S>) (root, query, criteriaBuilder) ->
                 criteriaBuilder.not(specification.asBuilder().toPredicate(root, query, criteriaBuilder)));
     }
 
