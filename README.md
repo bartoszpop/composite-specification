@@ -24,6 +24,9 @@ public class Employee {
     private String firstName;
 
     @Column
+    private String secondName;
+    
+    @Column
     private LocalDate dateOfBirth;
     
     (...)
@@ -35,6 +38,9 @@ public class Department {
 
     @Id
     private Long id;
+
+    @Column
+    private String name;
 
     @OneToMany(mappedBy = "department", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Employee> employees;
