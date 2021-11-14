@@ -1,6 +1,8 @@
 package com.github.bartoszpop.jpa.specification.example;
 
 import com.github.bartoszpop.jpa.specification.CompositeSpecification;
+import com.github.bartoszpop.jpa.specification.ExpressionSpecifications;
+import com.github.bartoszpop.jpa.specification.TypeSafePredicateBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -201,7 +203,12 @@ public class DepartmentApplication {
          */
         departmentsFound = departmentRepository.findAll(joinEmployees(
                 ((CompositeSpecification<Employee, Path<Employee>>) (CompositeSpecification<Employee, ? extends Expression<Employee>>) in(List.of(rachel)))
-                .or(firstName(phoebe.getFirstName()))));
+                .or(firstName(phoebe.getFirstName())))); // Java 11
+        assertThat(departmentsFound, containsInAnyOrder(department(salesDepartment), department(financeDepartment)));
+
+        departmentsFound = departmentRepository.findAll(joinEmployees(
+                ExpressionSpecifications.<Employee, Path<Employee>, TypeSafePredicateBuilder<Path<Employee>>> in(List.of(rachel))
+                        .or(firstName(phoebe.getFirstName())))); // Java 17
         assertThat(departmentsFound, containsInAnyOrder(department(salesDepartment), department(financeDepartment)));
     }
 }

@@ -1,12 +1,15 @@
 package com.github.bartoszpop.jpa.specification.example;
 
 import com.github.bartoszpop.jpa.specification.CompositeSpecification;
+import com.github.bartoszpop.jpa.specification.PredicateBuilder;
+import com.github.bartoszpop.jpa.specification.TypeSafe;
 import com.github.bartoszpop.jpa.specification.TypeSafePredicateBuilder;
 
 import javax.persistence.criteria.From;
 import javax.persistence.criteria.Join;
 import javax.persistence.criteria.JoinType;
 import javax.persistence.criteria.Path;
+import javax.persistence.criteria.Root;
 
 import static com.github.bartoszpop.jpa.specification.CompositeSpecification.noOp;
 
@@ -15,18 +18,22 @@ public final class DepartmentSpecifications {
     private DepartmentSpecifications() {
     }
 
-    public static CompositeSpecification<Department, Path<Department>> name(String name) {
-        return CompositeSpecification.<Department, Path<Department>, TypeSafePredicateBuilder<Path<Department>>>of(
+    public static <T extends Path<Department>, S extends PredicateBuilder<T> & TypeSafe<? super Root<Department>>> CompositeSpecification<Department, T> name(String name) {
+        // Cast allowed because CompositeSpecification<Department, Path<Department>> is only a consumer of T
+        //noinspection unchecked
+        return (CompositeSpecification<Department, T>) CompositeSpecification.<Department, Path<Department>, TypeSafePredicateBuilder<Path<Department>>>of(
                 (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("name"), name)
         );
     }
 
-    public static CompositeSpecification<Department, From<?, Department>> fetchEmployees() {
+    public static <T extends From<?, Department>, S extends PredicateBuilder<T> & TypeSafe<? super Root<Department>>> CompositeSpecification<Department, T> fetchEmployees() {
         return fetchEmployees(noOp());
     }
 
-    public static CompositeSpecification<Department, From<?, Department>> fetchEmployees(CompositeSpecification<?, ? super Join<?, Employee>> employeeSpecification) {
-        return CompositeSpecification.<Department, From<?, Department>, TypeSafePredicateBuilder<From<?, Department>>>of(
+    public static <T extends From<?, Department>, S extends PredicateBuilder<T> & TypeSafe<? super Root<Department>>> CompositeSpecification<Department, T>  fetchEmployees(CompositeSpecification<?, ? super Join<?, Employee>> employeeSpecification) {
+        // Cast allowed because CompositeSpecification<Department, From<?, Department>> is only a consumer of T
+        //noinspection unchecked
+        return (CompositeSpecification<Department, T>) CompositeSpecification.<Department, From<?, Department>, TypeSafePredicateBuilder<From<?, Department>>>of(
                 (root, query, criteriaBuilder) -> {
                     /*
                     This is to return distinct Department instances. If two employees are in the same department, this query will return two instances of the same Department.
@@ -40,8 +47,10 @@ public final class DepartmentSpecifications {
                 });
     }
 
-    public static CompositeSpecification<Department, From<?, Department>> joinEmployees(CompositeSpecification<?, ? super Join<?, Employee>> employeeSpecification) {
-        return CompositeSpecification.<Department, From<?, Department>, TypeSafePredicateBuilder<From<?, Department>>>of(
+    public static <T extends From<?, Department>, S extends PredicateBuilder<T> & TypeSafe<? super Root<Department>>> CompositeSpecification<Department, T> joinEmployees(CompositeSpecification<?, ? super Join<?, Employee>> employeeSpecification) {
+        // Cast allowed because CompositeSpecification<Department, From<?, Department>> is only a consumer of T
+        //noinspection unchecked
+        return (CompositeSpecification<Department, T>) CompositeSpecification.<Department, From<?, Department>, TypeSafePredicateBuilder<From<?, Department>>>of(
                 (root, query, criteriaBuilder) -> {
                     /*
                     This is to return distinct Department instances. If two employees are in the same department, this query will return two instances of the same Department.
