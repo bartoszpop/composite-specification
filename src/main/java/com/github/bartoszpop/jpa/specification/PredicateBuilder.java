@@ -14,7 +14,6 @@ import javax.persistence.criteria.Root;
  * and delegates to this class to create {@link Predicate} for {@link Specification}.
  *
  * @param <T> the type of a target the predicate evaluates on
- *
  * @author Bartosz Popiela
  */
 public interface PredicateBuilder<T> {

@@ -1,12 +1,10 @@
 package com.github.bartoszpop.jpa.specification.example;
 
-import com.github.bartoszpop.jpa.specification.CompositeSpecification;
 import com.github.bartoszpop.jpa.specification.ExpressionSpecifications;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-import javax.persistence.criteria.Expression;
 import javax.persistence.criteria.Path;
 import java.time.LocalDate;
 import java.util.List;
@@ -194,20 +192,10 @@ public class DepartmentApplication {
         assertThat(departmentsFound, containsInAnyOrder(department(salesDepartment), department(financeDepartment)));
 
         /*
-        Because CompositeSpecification#or takes CompositeSpecification parametrized with a supertype,
-        the first specification in chain must be parametrized with a common subtype of the subsequent specifications.
-        In consequence, if the specifications are parametrized with different type arguments,
-        it is not possible to change the order without an explicit cast.
-        This flaw has been fixed in the Java 17 compatible variant of this library with use of a sealed interface.
+        The first specification in chain must be parametrized with a common subtype of the subsequent specifications.
+        This is the above example but with the order of specifications reversed.
          */
-        departmentsFound = departmentRepository.findAll(joinEmployees(
-                ((CompositeSpecification<Employee, Path<Employee>>) (CompositeSpecification<Employee, ? extends Expression<Employee>>) in(List.of(rachel))) // Java 11
-                        .or(firstName(phoebe.getFirstName()))));
-        assertThat(departmentsFound, containsInAnyOrder(department(salesDepartment), department(financeDepartment)));
-
-        departmentsFound = departmentRepository.findAll(joinEmployees(
-                ExpressionSpecifications.<Employee, Path<Employee>> in(List.of(rachel))
-                        .or(firstName(phoebe.getFirstName())))); // Java 17
+        departmentsFound = departmentRepository.findAll(joinEmployees(ExpressionSpecifications.<Employee, Path<Employee>> in(List.of(rachel)).or(firstName(phoebe.getFirstName()))));
         assertThat(departmentsFound, containsInAnyOrder(department(salesDepartment), department(financeDepartment)));
     }
 }

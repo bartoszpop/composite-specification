@@ -64,7 +64,8 @@ public class Employee {
     @Override
     public final boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof Employee that)) return false;
+        if (!(o instanceof Employee)) return false;
+        Employee that = (Employee) o;
         return this.id != null && Objects.equals(this.id, that.id);
     }
 
