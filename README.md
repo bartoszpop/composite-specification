@@ -44,46 +44,60 @@ public class Department {
 ```
 and the specifications:
 ```java
-public final class DepartmentSpecifications {
-    
-    public static CompositeSpecification<Department, From<?, Department>> fetchEmployees() {
-        return CompositeSpecification.<Department, From<?, Department>, TypeSafePredicateBuilder<From<?, Department>>>of(
-                (root, query, criteriaBuilder) -> {
-                    root.fetch("employees", JoinType.LEFT);
-                    return criteriaBuilder.and();
-                });
-    }
-    
-    public static CompositeSpecification<Department, From<?, Department>> joinEmployees(CompositeSpecification<?, ? super Join<?, Employee>> employeeSpecification) {
-        return CompositeSpecification.<Department, From<?, Department>, TypeSafePredicateBuilder<From<?, Department>>>of(
-                (root, query, criteriaBuilder) -> employeeSpecification.asBuilder().toPredicate(root.<Department, Employee>join("employees", JoinType.LEFT), query, criteriaBuilder));
-    }
-}
-
-```
-```java
 public final class EmployeeSpecifications {
     
-    public static CompositeSpecification<Employee, Path<Employee>> firstName(String firstName) {
-        return CompositeSpecification.<Employee, Path<Employee>, TypeSafePredicateBuilder<Path<Employee>>>of(
+    public static <S extends Path<Employee>> CompositeSpecification<Employee, S> firstName(String firstName) {
+        return CompositeSpecification.<Employee, S, TypeSafePredicateBuilder<Path<Employee>>>of(
                 (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("firstName"), firstName)
         );
     }
 
-    public static CompositeSpecification<Employee, Path<Employee>> dateOfBirth(LocalDate dateOfBirth) {
-        return CompositeSpecification.<Employee, Path<Employee>, TypeSafePredicateBuilder<Path<Employee>>>of(
-                (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("dateOfBirth"), dateOfBirth)
+    public static <S extends Path<Employee>> CompositeSpecification<Employee, S> secondName(String secondName) {
+        return CompositeSpecification.<Employee, S, TypeSafePredicateBuilder<Path<Employee>>>of(
+                (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("secondName"), secondName)
+        );
+    }
+
+    public static <S extends Path<Employee>> CompositeSpecification<Employee, S> dateOfBirth(CompositeSpecification<?, ? super Path<LocalDate>> dateOfBirthSpecification) {
+        return CompositeSpecification.<Employee, S, TypeSafePredicateBuilder<Path<Employee>>>of(
+                (root, query, criteriaBuilder) -> dateOfBirthSpecification.asBuilder().toPredicate(root.get("dateOfBirth"), query, criteriaBuilder)
         );
     }
 }
 ```
-To find departments that have an employee whose first name is John and was born on 1.01.1990, compose the specifications as follows:
 ```java
-var departments = departmentRepository.findAll(joinEmployees(firstName("John").and(dateOfBirth(LocalDate.of(1990, 1, 1)))));
+public final class DepartmentSpecifications {
+
+    public static <S extends Path<Department>> CompositeSpecification<Department, S> name(String name) {
+        return CompositeSpecification.<Department, S, TypeSafePredicateBuilder<Path<Department>>>of(
+                (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("name"), name)
+        );
+    }
+
+    public static <S extends From<?, Department>> CompositeSpecification<Department, S> joinEmployees(CompositeSpecification<?, ? super Join<?, Employee>> employeeSpecification) {
+        return CompositeSpecification.<Department, S, TypeSafePredicateBuilder<From<?, Department>>>of(
+                (root, query, criteriaBuilder) -> {
+                    query.distinct(true);
+                    return employeeSpecification.asBuilder().toPredicate(root.<Department, Employee>join("employees", JoinType.LEFT), query, criteriaBuilder);
+                });
+    }
+
+    public static <S extends From<?, Department>> CompositeSpecification<Department, S> fetchEmployees(CompositeSpecification<?, ? super Join<?, Employee>> employeeSpecification) {
+        return CompositeSpecification.<Department, S, TypeSafePredicateBuilder<From<?, Department>>>of(
+                (root, query, criteriaBuilder) -> {
+                    query.distinct(true);
+                    return employeeSpecification.asBuilder().toPredicate((Join<Department, Employee>) root.<Department, Employee>fetch("employees", JoinType.LEFT), query, criteriaBuilder);
+                });
+    }
+}
+```
+To find departments that have an employee whose first name is John and was born before 1.01.1990, compose the specifications as follows:
+```java
+var departments = departmentRepository.findAll(joinEmployees(firstName("John").and(dateOfBirth(lessThan(LocalDate.of(1990, 1, 1))))));
 ```
 This technique allows to fetch the lazy associations on a per-query basis.
 ```java
-var department = departmentRepository.findOne(name("Sales").and(fetchEmployees()));
+var department = departmentRepository.findOne(name("Sales").and(fetchEmployees(secondName("Doe"))));
 ```
 More examples can be found [here](../main/src/example/java/io/github/bartoszpop/jpa/specification/example/DepartmentApplication.java). Run the demo application with
 ```shell
