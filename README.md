@@ -1,7 +1,7 @@
 # Composite Specification API
 
 This project provides a composite [Specification](../main/src/main/java/io/github/bartoszpop/jpa/specification/CompositeSpecification.java)
-in the sense of ["Specifications"]("https://www.martinfowler.com/apsupp/spec.pdf") by Eric Evans and Martin Fowler.
+in the sense of ["Specifications"](https://www.martinfowler.com/apsupp/spec.pdf) by Eric Evans and Martin Fowler.
 It is parametrized with the type of a target the [Predicate](https://javaee.github.io/javaee-spec/javadocs/javax/persistence/criteria/Predicate.html) evaluates on.
 Instances of this class are composable in opposite to the [Root](https://javaee.github.io/javaee-spec/javadocs/javax/persistence/criteria/Root.html) limited
 [Specification](https://docs.spring.io/spring-data/jpa/docs/current/api/org/springframework/data/jpa/domain/Specification.html) interface.
